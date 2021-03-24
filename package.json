@@ -1,0 +1,36 @@
+{
+  "name": "trim-ts-imports",
+  "version": "1.0.0",
+  "description": "A tool to trim import statements for typescript.",
+  "main": "bin/index.js",
+  "scripts": {
+    "test": "tsc && node bin/index.js -f G:\\muweb\\trunk\\project\\TsScripts\\System\\map\\mapmanager.ts", 
+    "taobao": "npm config set registry=https://registry.npm.taobao.org", 
+    "npmjs": "npm config set registry=http://registry.npmjs.org", 
+    "build ": "tsc", 
+    "release": "npm config set registry=http://registry.npmjs.org && npm version patch && npm publish && npm config set registry=https://registry.npm.taobao.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Halliwood/trim-ts-imports.git"
+  },
+  "keywords": [
+    "typescript",
+    "import"
+  ],
+  "author": "Halliwood",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Halliwood/trim-ts-imports/issues"
+  },
+  "homepage": "https://github.com/Halliwood/trim-ts-imports#readme",
+  "dependencies": {
+    "@typescript-eslint/typescript-estree": "^4.18.0",
+    "cli": "^1.0.1",
+    "typescript": "^4.2.3"
+  },
+  "devDependencies": {
+    "@types/cli": "^0.11.19",
+    "@types/node": "^14.14.35"
+  }
+}
