@@ -1,6 +1,6 @@
 {
   "name": "trim-ts-imports",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A tool to trim import statements for typescript.",
   "main": "bin/index.js",
   "types": "bin/index.d.ts",
