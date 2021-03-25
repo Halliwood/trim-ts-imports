@@ -13,4 +13,4 @@ if (!args.file) {
     cli_1.default.exit(1);
 }
 var trimer = new ImportTrimer_1.ImportTrimer();
-trimer.trim(args.file);
+trimer.trimFile(args.file);

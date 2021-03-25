@@ -15,4 +15,4 @@ if(!args.file) {
 }
 
 let trimer = new ImportTrimer();
-trimer.trim(args.file);
+trimer.trimFile(args.file);

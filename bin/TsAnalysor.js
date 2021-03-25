@@ -8,8 +8,8 @@ var TsAnalysor = /** @class */ (function () {
     function TsAnalysor(option) {
         this.option = option || {};
     }
-    TsAnalysor.prototype.collect = function (ast, filePath) {
-        this.filePath = filePath;
+    TsAnalysor.prototype.collect = function (ast, onError) {
+        this.onError = onError;
         this.ids = [];
         this.imports = [];
         this.processAST(ast);
@@ -635,7 +635,7 @@ var TsAnalysor = /** @class */ (function () {
         return str;
     };
     TsAnalysor.prototype.codeFromTSQualifiedName = function (ast) {
-        ast.left;
+        this.assert(false, ast);
     };
     TsAnalysor.prototype.setIdUsed = function (id) {
         var idStr = this.codeFromAST(id);
@@ -648,7 +648,10 @@ var TsAnalysor = /** @class */ (function () {
             if (this.option.errorDetail) {
                 console.log(util.inspect(ast, true, 6));
             }
-            console.log('\x1B[36m%s\x1B[0m\x1B[33m%d:%d\x1B[0m - \x1B[31merror\x1B[0m: %s', this.filePath, ast.loc ? ast.loc.start.line : -1, ast.loc ? ast.loc.start.column : -1, message ? message : 'Error');
+            if (this.onError) {
+                this.onError(message || "Error: " + ast.type + " not suppoprted", ast.loc ? { line: ast.loc.start.line, col: ast.loc.start.column } : undefined, ast.loc ? { line: ast.loc.end.line, col: ast.loc.end.column } : undefined);
+            }
+            console.log('\x1B[36m%s\x1B[0m\x1B[33m%d:%d\x1B[0m - \x1B[31merror\x1B[0m: %s', this.filePath, ast.loc ? ast.loc.start.line : -1, ast.loc ? ast.loc.start.column : -1, message ? message : "Error: " + ast.type + " not suppoprted");
             console.log(Strings_1.TrimTsImportsHints.ContactMsg);
         }
     };

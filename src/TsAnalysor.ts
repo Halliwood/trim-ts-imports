@@ -1,10 +1,13 @@
 import { Accessibility, ArrayExpression, ArrayPattern, ArrowFunctionExpression, AssignmentExpression, AssignmentPattern, AwaitExpression, BigIntLiteral, BinaryExpression, BlockStatement, BreakStatement, CallExpression, CatchClause, ClassBody, ClassDeclaration, ClassExpression, ClassProperty, ConditionalExpression, ContinueStatement, DebuggerStatement, Decorator, DoWhileStatement, EmptyStatement, EntityName, ExportAllDeclaration, ExportDefaultDeclaration, ExportNamedDeclaration, ExportSpecifier, ExpressionStatement, ForInStatement, ForOfStatement, ForStatement, FunctionDeclaration, FunctionExpression, Identifier, IfStatement, ImportDeclaration, ImportDefaultSpecifier, ImportNamespaceSpecifier, ImportSpecifier, LabeledStatement, Literal, LogicalExpression, MemberExpression, MetaProperty, MethodDefinition, NewExpression, ObjectExpression, ObjectPattern, Program, Property, RestElement, ReturnStatement, SequenceExpression, SpreadElement, Super, SwitchCase, SwitchStatement, TaggedTemplateExpression, TemplateElement, TemplateLiteral, ThisExpression, ThrowStatement, TryStatement, UnaryExpression, UpdateExpression, VariableDeclaration, VariableDeclarator, WhileStatement, WithStatement, YieldExpression, TSEnumDeclaration, BindingName, TSArrayType, TSAsExpression, TSClassImplements, TSInterfaceDeclaration, TSTypeAssertion, TSModuleDeclaration, TSModuleBlock, TSDeclareFunction, TSAbstractMethodDefinition, TSInterfaceBody, TSImportEqualsDeclaration, TSMethodSignature, TSQualifiedName, TSTypeAnnotation, TSTypeParameterInstantiation, TSTypeReference, TSVoidKeyword, BaseNode } from '@typescript-eslint/types/dist/ts-estree';
-import { AST, AST_NODE_TYPES } from '@typescript-eslint/typescript-estree';
+import { AST, AST_NODE_TYPES, TSESTreeOptions } from '@typescript-eslint/typescript-estree';
 import util = require('util');
 import path = require('path');
 import { TrimTsImportsHints } from './Strings';
-import { TrimTsImportOption } from './typings';
-import { type } from 'node:os';
+import { SourceLoc, TrimErrorCallback, TrimTsImportOption } from './typings';
+
+interface IASTNode extends BaseNode {
+    type: AST_NODE_TYPES;
+}
 
 export interface ModifiedLine {
     loc: {
@@ -22,12 +25,14 @@ export class TsAnalysor {
     private ids: string[] | undefined;
     private imports: ImportDeclaration[] | undefined;
 
+    private onError: TrimErrorCallback | undefined;
+
     constructor(option?: TrimTsImportOption) {
         this.option = option || {};
     }
 
-    collect(ast: AST<any>, filePath: string) {
-        this.filePath = filePath;
+    collect(ast: AST<any>, onError?: TrimErrorCallback) {
+        this.onError = onError;
         this.ids = [];
         this.imports = [];
         this.processAST(ast);
@@ -779,7 +784,7 @@ export class TsAnalysor {
     }
 
     private codeFromTSQualifiedName(ast: TSQualifiedName) {
-        ast.left
+        this.assert(false, ast)
     }
 
     private setIdUsed(id: Identifier) {
@@ -789,12 +794,17 @@ export class TsAnalysor {
         }
     }
   
-    private assert(cond: boolean, ast: BaseNode, message: string | undefined) {
+    private assert(cond: boolean, ast: BaseNode, message?: string) {
         if (!cond) {
             if (this.option.errorDetail) {
                 console.log(util.inspect(ast, true, 6));
             }
-            console.log('\x1B[36m%s\x1B[0m\x1B[33m%d:%d\x1B[0m - \x1B[31merror\x1B[0m: %s', this.filePath, ast.loc ? ast.loc.start.line : -1, ast.loc ? ast.loc.start.column : -1, message ? message : 'Error');
+            if(this.onError) {
+                this.onError(message || `Error: ${(<IASTNode>ast).type} not suppoprted`, 
+                ast.loc ? { line: ast.loc.start.line, col: ast.loc.start.column } : undefined, 
+                ast.loc ? { line: ast.loc.end.line, col: ast.loc.end.column } : undefined);
+            }
+            console.log('\x1B[36m%s\x1B[0m\x1B[33m%d:%d\x1B[0m - \x1B[31merror\x1B[0m: %s', this.filePath, ast.loc ? ast.loc.start.line : -1, ast.loc ? ast.loc.start.column : -1, message ? message : `Error: ${(<IASTNode>ast).type} not suppoprted`);
             console.log(TrimTsImportsHints.ContactMsg);
         }
     }
