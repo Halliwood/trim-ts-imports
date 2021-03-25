@@ -16,3 +16,5 @@ if(!args.file) {
 
 let trimer = new ImportTrimer();
 trimer.trimFile(args.file);
+
+export default trimer;

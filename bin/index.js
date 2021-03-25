@@ -14,3 +14,4 @@ if (!args.file) {
 }
 var trimer = new ImportTrimer_1.ImportTrimer();
 trimer.trimFile(args.file);
+exports.default = trimer;
