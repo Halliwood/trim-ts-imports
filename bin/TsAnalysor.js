@@ -2,41 +2,62 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.TsAnalysor = void 0;
 var typescript_estree_1 = require("@typescript-eslint/typescript-estree");
-var util = require("util");
-var Strings_1 = require("./Strings");
+var parser = require("@typescript-eslint/typescript-estree");
 var TsAnalysor = /** @class */ (function () {
     function TsAnalysor(option) {
         this.option = option || {};
     }
-    TsAnalysor.prototype.collect = function (ast, onError) {
-        this.onError = onError;
+    TsAnalysor.prototype.trim = function (fileContent) {
+        var _this = this;
+        var ast = parser.parse(fileContent, { loc: true });
         this.ids = [];
         this.imports = [];
-        this.processAST(ast);
-        console.log("used types: " + this.ids.join(', '));
-        var modifiedLines = [];
-        for (var _i = 0, _a = this.imports; _i < _a.length; _i++) {
-            var ipt = _a[_i];
-            var notUsedCnt = 0;
-            for (var i = 0, len = ipt.specifiers.length; i < len; i++) {
-                var s = ipt.specifierNames[i];
-                if (this.ids.indexOf(s) < 0) {
-                    //没有用到的id
-                    console.log("unused type: " + s);
-                    ipt.specifiers[i].__notUsed = true;
-                    notUsedCnt++;
+        return new Promise(function (resolve, reject) {
+            _this.processAST(ast);
+            var modifiedLines = [];
+            for (var _i = 0, _a = _this.imports; _i < _a.length; _i++) {
+                var ipt = _a[_i];
+                var notUsedCnt = 0;
+                for (var i = 0, len = ipt.specifiers.length; i < len; i++) {
+                    var s = ipt.specifierNames[i];
+                    if (_this.ids.indexOf(s) < 0) {
+                        //没有用到的id
+                        // console.log(`unused type: ${s}`);
+                        ipt.specifiers[i].__notUsed = true;
+                        notUsedCnt++;
+                    }
+                }
+                if (notUsedCnt > 0) {
+                    var content = '';
+                    if (notUsedCnt < ipt.specifiers.length) {
+                        content = _this.codeFromAST(ipt);
+                    }
+                    var line = { content: content, loc: { startLine: ipt.loc.start.line, endLine: ipt.loc.end.line } };
+                    modifiedLines.push(line);
                 }
             }
-            if (notUsedCnt > 0) {
-                var content = '';
-                if (notUsedCnt < ipt.specifiers.length) {
-                    content = this.codeFromAST(ipt);
+            var newContent = fileContent;
+            if (modifiedLines.length > 0) {
+                var lines = fileContent.split(/\r?\n/);
+                modifiedLines.sort(function (a, b) { return b.loc.startLine - a.loc.startLine; });
+                for (var _b = 0, modifiedLines_1 = modifiedLines; _b < modifiedLines_1.length; _b++) {
+                    var ml = modifiedLines_1[_b];
+                    if (ml.content) {
+                        if (ml.loc.startLine == ml.loc.endLine) {
+                            lines[ml.loc.startLine - 1] = ml.content;
+                        }
+                        else {
+                            lines.splice(ml.loc.startLine - 1, ml.loc.endLine - ml.loc.startLine + 1, ml.content);
+                        }
+                    }
+                    else {
+                        lines.splice(ml.loc.startLine - 1, ml.loc.endLine - ml.loc.startLine + 1);
+                    }
                 }
-                var line = { content: content, loc: { startLine: ipt.loc.start.line, endLine: ipt.loc.end.line } };
-                modifiedLines.push(line);
+                newContent = lines.join('\n');
             }
-        }
-        return modifiedLines;
+            resolve(newContent);
+        });
     };
     TsAnalysor.prototype.processAST = function (ast) {
         switch (ast.type) {
@@ -644,16 +665,17 @@ var TsAnalysor = /** @class */ (function () {
         }
     };
     TsAnalysor.prototype.assert = function (cond, ast, message) {
-        if (!cond) {
-            if (this.option.errorDetail) {
-                console.log(util.inspect(ast, true, 6));
-            }
-            if (this.onError) {
-                this.onError(message || "Error: " + ast.type + " not suppoprted", ast.loc ? { line: ast.loc.start.line, col: ast.loc.start.column } : undefined, ast.loc ? { line: ast.loc.end.line, col: ast.loc.end.column } : undefined);
-            }
-            console.log('\x1B[36m%s\x1B[0m\x1B[33m%d:%d\x1B[0m - \x1B[31merror\x1B[0m: %s', this.filePath, ast.loc ? ast.loc.start.line : -1, ast.loc ? ast.loc.start.column : -1, message ? message : "Error: " + ast.type + " not suppoprted");
-            console.log(Strings_1.TrimTsImportsHints.ContactMsg);
-        }
+        // if (!cond) {
+        //     this.hasError = true;
+        //     if (this.option.errorDetail) {
+        //         console.log(util.inspect(ast, true, 6));
+        //     }
+        //     if(this.onError) {
+        //         console.error(message || `Error: ${(<IASTNode>ast).type} not suppoprted`, 
+        //         ast.loc ? { line: ast.loc.start.line, col: ast.loc.start.column } : undefined, 
+        //         ast.loc ? { line: ast.loc.end.line, col: ast.loc.end.column } : undefined);
+        //     }
+        // }
     };
     return TsAnalysor;
 }());
