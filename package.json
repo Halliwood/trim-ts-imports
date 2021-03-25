@@ -3,6 +3,7 @@
   "version": "1.0.1",
   "description": "A tool to trim import statements for typescript.",
   "main": "bin/index.js",
+  "types": "./typings/index.d.ts",
   "scripts": {
     "test": "tsc && node bin/index.js -f G:\\muweb\\trunk\\project\\TsScripts\\System\\map\\mapmanager.ts",
     "taobao": "npm config set registry=https://registry.npm.taobao.org",
