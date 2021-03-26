@@ -369,6 +369,8 @@ var TsAnalysor = /** @class */ (function () {
         }
         if (ast.body)
             this.processAST(ast.body);
+        if (ast.returnType)
+            this.processAST(ast.returnType);
     };
     TsAnalysor.prototype.processIdentifier = function (ast) {
     };

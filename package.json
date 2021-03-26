@@ -10,7 +10,8 @@
     "npmjs": "npm config set registry=http://registry.npmjs.org",
     "build ": "tsc",
     "setproxy": "git config --global http.https://github.com.proxy socks5://127.0.0.1:1080 && git config --global https.https://github.com.proxy socks5://127.0.0.1:1080",
-    "unsetproxy": "git config --global --unset http.proxy && git config --global --unset https.proxy",
+    "unsetproxy": "git config --global --unset http.proxy",
+    "unsetproxy2": "git config --global --unset https.proxy",
     "release": "npm config set registry=http://registry.npmjs.org && npm version patch && npm publish && npm config set registry=https://registry.npm.taobao.org"
   },
   "repository": {
